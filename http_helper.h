@@ -127,7 +127,7 @@ class requests{
                   curl_easy_strerror(res));
           }
           else {
-          response = chunk.memory;
+            response = chunk.memory;
           }
       
           /* always cleanup */

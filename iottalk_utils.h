@@ -20,7 +20,7 @@ void Register(){
     vector<string> device_feature_list = {iottalk_input_device_feature, iottalk_output_device_feature};
     json params = {{
         "profile", {
-            {"d_name", "nthu_device"}, // 註冊device名稱
+            {"d_name", "hatsunedevice"}, // 註冊device名稱
             {"dm_name", "testmodel"},
             {"u_name", "yb"},
             {"is_sim", false},
@@ -56,10 +56,17 @@ void iottalk_push(string& str1,string str2 = "miku"){
 string iottalk_pull(){
     string url = "http://" + iottalk_server + ":" + iottalk_server_port + "/" + iottalk_mac + "/" + iottalk_output_device_feature;
     string response = requests::get(url);
+    json content;
     string retStr = "empty";
-    //cout << "iottalk pull response: \n" << response << endl;
+    cout << "iottalk pull response: \n" << response << endl;
 
-    json content = json::parse(response);
+    try{
+        content = json::parse(response);
+    }catch(exception e){
+        cout << e.what();
+    }
+
+    
     //cout << "JSON parse: " << content;
     if (content["samples"] != nullptr){
         auto data = content["samples"][0][1];// 資料拉下來會有兩筆，index 0 為較新的 data，index 1 為較舊的 data
