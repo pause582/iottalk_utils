@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include "lib/iottalk_utils.h"
+//#include "lib/iottalk_utils.h"
+#include "iottalk_utils.h"
 
 using namespace std;
 
@@ -9,6 +10,8 @@ int main(){
     std::cout << "iottalk round trip time test.\n";
     std::cout << "Press Enter to start testing." << std::endl;
     std::cin.get();
+    Register();
+    cout << "register";
     
     string s1 = "hello nthu";
     string s2;
