@@ -7,6 +7,9 @@ iottalk_server_port = "9999"
 default_input_feature = "inputdevicefeature" # 建立的 model input device feature
 default_output_feature = "outputdevicefeature" # 建立的 model output device feature
 default_mac = "39393939" #要註冊的
+default_device_name = "default_device"
+
+max_retry = 20
 
 class iottalk_helper:
 
@@ -14,7 +17,7 @@ class iottalk_helper:
     mac_addr: str = default_mac
     feature_list: list = [default_input_feature, default_output_feature]
 
-    def __init__(self, device_name:str ,feature_list: list = [], mac_addr: str = default_mac):
+    def __init__(self, device_name:str =default_device_name,feature_list: list = [], mac_addr: str = default_mac):
         self.device_name = device_name
         self.feature_list += feature_list
         self.mac_addr = mac_addr
@@ -71,14 +74,23 @@ class iottalk_helper:
             headers = request_headers,
             data = request_body
         )
-
+        #time.sleep(0.1) # 連續拉取資料時需要 sleep 停頓迴圈
         return response.status_code
 
     def pull_twin(self, feature: str = default_output_feature):
-        url = "http://" + iottalk_server + ":" + iottalk_server_port + "/" + self.mac_addr + "/" + feature
-        response = requests.get(url)
-        content = eval(response.text)
+        
+        retry_cnt = 0
         retArr = []
+        content = None
+        url = "http://" + iottalk_server + ":" + iottalk_server_port + "/" + self.mac_addr + "/" + feature
+        
+        while True:
+            response = requests.get(url)
+            content = json.loads(response.text)
+
+            if(len(content["samples"]) != 0 or retry_cnt > max_retry): break
+            retry_cnt = retry_cnt + 1
+            time.sleep(0.1)
         
         if (len(content["samples"]) != 0):
             data = content["samples"][0][1] # 資料拉下來會有兩筆，index 0 為較新的 data，index 1 為較舊的 data
@@ -91,23 +103,26 @@ class iottalk_helper:
         return retArr
 
     def pull(self, feature: str = default_output_feature):
-        url = "http://" + iottalk_server + ":" + iottalk_server_port + "/" + self.mac_addr + "/" + feature
-        response = requests.get(url)
-        content = eval(response.text)
+
+        retry_cnt = 0
+        content = None
         retStr = "empty"
+        url = "http://" + iottalk_server + ":" + iottalk_server_port + "/" + self.mac_addr + "/" + feature
+        
+        while True:
+            response = requests.get(url)
+            content = json.loads(response.text)
+
+            if(len(content["samples"]) != 0 or retry_cnt > max_retry): break
+            retry_cnt = retry_cnt + 1
+            time.sleep(0.1)
 
         #print("iottalk pull response: " + str(response))
         #print("status code:" + str(response.status_code))
-        #print(response.text)
-        
+
         if (len(content["samples"]) != 0):
             data = content["samples"][0][1] # 資料拉下來會有兩筆，index 0 為較新的 data，index 1 為較舊的 data
-            #data_2 = content["samples"][1][1] # 新註冊時推上去只有一筆資料，所以這邊直接跑會報錯，先註解掉
-
             retStr = str(data[0])
-            #print(data_1)
-            #print(data_2)
-            #time.sleep(0.1) # 連續拉取資料時需要 sleep 停頓迴圈
         
         return retStr
 
